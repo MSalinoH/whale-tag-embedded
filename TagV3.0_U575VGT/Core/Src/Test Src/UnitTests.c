@@ -132,6 +132,11 @@ bool SDcard_UT(void){
 	return true;
 }
 
+void BMS_UT(BMS_HandleTypedef *bms_sensor){
+	
+	printf("BMS Unit Test: \r\n");
+}
+
 // Function for printing to SWV
 int _write(int file, char *ptr, int len) {
 	int DataIdx;

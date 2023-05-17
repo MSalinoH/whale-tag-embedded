@@ -62,7 +62,7 @@ typedef struct __BMS_TypeDef
 
 } BMS_HandleTypedef;
 
-HAL_StatusTypeDef BMS_Init(BMS_HandleTypedef *BMS, I2C_HandleTypeDef *hi2c_device);
+HAL_StatusTypeDef BMS_init(BMS_HandleTypedef *BMS, I2C_HandleTypeDef *hi2c_device);
 HAL_StatusTypeDef BMS_Get_Batt_Data(BMS_HandleTypedef *BMS);
 HAL_StatusTypeDef BMS_Get_Temp(BMS_HandleTypedef *BMS);
 

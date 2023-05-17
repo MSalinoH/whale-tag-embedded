@@ -26,6 +26,7 @@
 #include "UnitTests.h"
 #include "KellerDepth.h"
 #include "LightSensor.h"
+#include "BMS.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -73,6 +74,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 Keller_HandleTypedef depth_sensor;
 LightSensorHandleTypedef light_sensor;
+BMS_HandleTypedef bms_sensor;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -147,10 +149,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   Keller_init(&depth_sensor, &hi2c2);
   LightSensor_init(&light_sensor, &hi2c2);
+  BMS_init(&bms_sensor, &hi2c3);
 
   SDcard_UT();
   Keller_UT(&depth_sensor);
   Light_UT(&light_sensor);
+  BMS_UT(&bms_sensor);
   /* USER CODE END 2 */
 
   /* Infinite loop */

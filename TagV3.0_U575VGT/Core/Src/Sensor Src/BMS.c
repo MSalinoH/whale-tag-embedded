@@ -7,7 +7,7 @@
 
 #include "BMS.h"
 
-HAL_StatusTypeDef BMS_Init(BMS_HandleTypedef *BMS, I2C_HandleTypeDef *hi2c_device) {
+HAL_StatusTypeDef BMS_init(BMS_HandleTypedef *BMS, I2C_HandleTypeDef *hi2c_device) {
 	HAL_StatusTypeDef ret_val = HAL_ERROR;
 	BMS->i2c_handler = hi2c_device;
 	uint8_t data_buf = 0;
@@ -52,7 +52,7 @@ HAL_StatusTypeDef BMS_Get_Batt_Data(BMS_HandleTypedef *BMS) {
 		return ret_val;
 	}
 
-	BMS->i = TO_V(BMS->raw_i);
+	BMS->i = TO_I(BMS->raw_i);
 
 	return ret_val;
 }
