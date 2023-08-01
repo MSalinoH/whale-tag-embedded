@@ -98,6 +98,7 @@ void enter_data_capture(){
 	tx_thread_resume(&threads[AUDIO_THREAD].thread);
 	tx_thread_resume(&threads[IMU_THREAD].thread);
 	tx_thread_resume(&threads[ECG_THREAD].thread);
+	tx_thread_resume(&threads[ALS_THREAD].thread);
 }
 
 

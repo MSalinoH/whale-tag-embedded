@@ -10,6 +10,7 @@
 #include "LightSensor.h"
 #include "util.h"
 #include "main.h"
+#include "Lib Inc/timing.h"
 
 extern I2C_HandleTypeDef hi2c2;
 
@@ -181,7 +182,7 @@ HAL_StatusTypeDef LightSensor_get_manufacturer(LightSensorHandleTypedef *light_s
 }
 
 
-void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr){
+static void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr){
     LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)light_sensor_raw_addr;
 	if(LightSensor_get_data(light_sensor) == HAL_OK){
 		//Store data somewhere?
@@ -189,24 +190,27 @@ void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr){
 
 }
 
-HAL_StatusTypeDef LightSensor_thread_entry(ULONG thread_input){
-
-
-
+void LightSensor_thread_entry(ULONG thread_input){
 	//Declare lightsensor handler and initialize chip
 	LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)thread_input;
-	HAL_RESULT_PROPAGATE(LightSensor_init(light_sensor, &hi2c2));
+	if(LightSensor_init(light_sensor, &hi2c2) != HAL_OK) {
+		//ToDo: error handling
+		return;
+	}
 
-	TX_THREAD sample_timer;
-	//ToDo: Error handling
-	//ToDo: Time calculated from threadx ticks per second
+	//Create timer based on device sample rate
+	TX_TIMER sample_timer;
 	ULONG result = tx_timer_create(&sample_timer, "Light Sensor Sample Timer",
 		priv_lightSensor_sample_timer_expiration, (ULONG)(light_sensor),
 		1, tx_ms_to_ticks(1000), TX_AUTO_ACTIVATE
 	);
-	if(result)
-		return result;
+
+	if(result) {
+		//ToDo: error handling
+		return;
+	}
 
 	while(1){
+
 	}
 }

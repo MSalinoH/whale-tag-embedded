@@ -34,6 +34,7 @@ typedef enum __TX_THREAD_LIST {
 	IMU_THREAD,
 	ECG_THREAD,
 	APRS_THREAD,
+	ALS_THREAD,
 	NUM_THREADS //DO NOT ADD THREAD ENUMS BELOW THIS
 }Thread;
 
@@ -69,7 +70,7 @@ typedef struct __TX_THREAD_TypeDef {
 
 //Define the config for each struct here, in the same order the are listed in the Thread Enum above.
 static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
-		{
+		[STATE_MACHINE_THREAD] = {
 				//State Machine
 				.thread_name = "State Machine Thread",
 				.thread_entry_function = state_machine_thread_entry,
@@ -80,7 +81,7 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 				.timeslice = TX_NO_TIME_SLICE,
 				.start = TX_DONT_START
 		},
-		{
+		[AUDIO_THREAD] = {
 				//Audio Thread
 				.thread_name = "Audio Thread",
 				.thread_entry_function = audio_thread_entry,
@@ -91,7 +92,7 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 				.timeslice = TX_NO_TIME_SLICE,
 				.start = TX_DONT_START
 		},
-		{
+		[IMU_THREAD] = {
 				//IMU Thread
 				.thread_name = "IMU Thread",
 				.thread_entry_function = IMU_thread_entry,
@@ -102,7 +103,7 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 				.timeslice = TX_NO_TIME_SLICE,
 				.start = TX_DONT_START
 		},
-		{
+		[ECG_THREAD] = {
 				//ECG Thread
 				.thread_name = "ECG Thread",
 				.thread_entry_function = ecg_thread_entry,
@@ -113,7 +114,7 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 				.timeslice = TX_NO_TIME_SLICE,
 				.start = TX_DONT_START
 		},
-		{
+		[APRS_THREAD] = {
 			//APRS Thread
 			.thread_name = "APRS Thread",
 			.thread_entry_function = aprs_thread_entry,
@@ -124,7 +125,7 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 			.timeslice = TX_NO_TIME_SLICE,
 			.start = TX_DONT_START
 		},
-		{
+		[ALS_THREAD] = {
 			//Light Sensor Thread
 			.thread_name = "Light Sensor Thread",
 			.thread_entry_function = LightSensor_thread_entry,

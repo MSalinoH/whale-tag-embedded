@@ -145,5 +145,5 @@ HAL_StatusTypeDef LightSensor_get_data(LightSensorHandleTypedef *light_sensor);
 HAL_StatusTypeDef LightSensor_set_data_rate(LightSensorHandleTypedef *light_sensor, ALSIntegrationTime int_time, ALSMeasureTime meas_rate);
 HAL_StatusTypeDef LightSensor_get_part_id(LightSensorHandleTypedef *light_sensor, ALSPartIDRegister *dst);
 HAL_StatusTypeDef LightSensor_get_manufacturer(LightSensorHandleTypedef *light_sensor, ALSManufacIDRegister *dst);
-HAL_StatusTypeDef LightSensor_thread_entry(ULONG thread_input);
+void LightSensor_thread_entry(ULONG thread_input);
 #endif /* LIGHTSENSOR_H */
