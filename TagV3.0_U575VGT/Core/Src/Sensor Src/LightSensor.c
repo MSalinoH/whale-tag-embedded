@@ -192,8 +192,8 @@ static void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr
 
 void LightSensor_thread_entry(ULONG thread_input){
 	//Declare lightsensor handler and initialize chip
-	LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)thread_input;
-	if(LightSensor_init(light_sensor, &hi2c2) != HAL_OK) {
+	LightSensorHandleTypedef light_sensor; //= (LightSensorHandleTypedef *)thread_input;
+	if(LightSensor_init(&light_sensor, &hi2c2) != HAL_OK) {
 		//ToDo: error handling
 		return;
 	}
@@ -201,7 +201,7 @@ void LightSensor_thread_entry(ULONG thread_input){
 	//Create timer based on device sample rate
 	TX_TIMER sample_timer;
 	ULONG result = tx_timer_create(&sample_timer, "Light Sensor Sample Timer",
-		priv_lightSensor_sample_timer_expiration, (ULONG)(light_sensor),
+		priv_lightSensor_sample_timer_expiration, (ULONG)(&light_sensor),
 		1, tx_ms_to_ticks(1000), TX_AUTO_ACTIVATE
 	);
 
