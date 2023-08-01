@@ -7,11 +7,12 @@
  *      Datasheet: optoelectronics.liteon.com/upload/download/DS86-2014-0006/LTR-329ALS-01_DS_V1.pdf
  */
 
+
 #ifndef LIGHTSENSOR_H
 #define LIGHTSENSOR_H
 
 #include "stm32u5xx_hal.h"
-
+#include "tx_api.h"
 // ALS == Ambient Light Sensor
 // Light sensor I2C address
 #define ALS_ADDR	 	0x29
@@ -134,6 +135,7 @@ typedef struct __LightSensor_TypeDef
 	// Data buffers for I2C data
 	ALSStatusRegister status;
     ALSDataRegister data;
+    uint32_t count;
 } LightSensorHandleTypedef;
 
 HAL_StatusTypeDef LightSensor_init(LightSensorHandleTypedef *light_sensor, I2C_HandleTypeDef *hi2c_device);
@@ -143,5 +145,5 @@ HAL_StatusTypeDef LightSensor_get_data(LightSensorHandleTypedef *light_sensor);
 HAL_StatusTypeDef LightSensor_set_data_rate(LightSensorHandleTypedef *light_sensor, ALSIntegrationTime int_time, ALSMeasureTime meas_rate);
 HAL_StatusTypeDef LightSensor_get_part_id(LightSensorHandleTypedef *light_sensor, ALSPartIDRegister *dst);
 HAL_StatusTypeDef LightSensor_get_manufacturer(LightSensorHandleTypedef *light_sensor, ALSManufacIDRegister *dst);
-
+HAL_StatusTypeDef LightSensor_thread_entry(ULONG thread_input);
 #endif /* LIGHTSENSOR_H */

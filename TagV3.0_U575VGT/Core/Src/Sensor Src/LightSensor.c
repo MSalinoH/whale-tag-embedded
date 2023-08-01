@@ -9,6 +9,9 @@
 
 #include "LightSensor.h"
 #include "util.h"
+#include "main.h"
+
+extern I2C_HandleTypeDef hi2c2;
 
 /*** PRIVATE ***/
 
@@ -90,8 +93,8 @@ HAL_StatusTypeDef LightSensor_init(LightSensorHandleTypedef *light_sensor, I2C_H
 	
 	light_sensor->i2c_handler = hi2c_device;
 	
-	// Maximum initial startup time is 1000 ms
-	HAL_Delay(1000);
+	// Maximum initial startup time is 100 ms
+	HAL_Delay(100);
 
 	HAL_StatusTypeDef ret_val = LightSensor_wake_up(light_sensor, GAIN_DEF);
 
@@ -115,10 +118,7 @@ HAL_StatusTypeDef LightSensor_wake_up(LightSensorHandleTypedef *light_sensor, AL
 		.als_mode = LIGHT_WAKEUP
 	});
 
-	HAL_StatusTypeDef ret_val = HAL_I2C_Mem_Write(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_CONTR, I2C_MEMADD_SIZE_8BIT, &control_raw, sizeof(control_raw), 100);
-	if(ret_val != HAL_OK){
-		return ret_val;
-	}
+	HAL_RESULT_PROPAGATE(HAL_I2C_Mem_Write(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_CONTR, I2C_MEMADD_SIZE_8BIT, &control_raw, sizeof(control_raw), 100));
 	// Waits 10ms maximum for wakeup time of light sensor
 	// A non-blocking solution can be found
 	HAL_Delay(10);
@@ -143,10 +143,7 @@ HAL_StatusTypeDef LightSensor_get_data(LightSensorHandleTypedef *light_sensor) {
 	uint8_t status_raw;
 
 	//read values and status together
-    HAL_StatusTypeDef ret_val = HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, &status_raw, 1, 100);
-	if(ret_val != HAL_OK){
-		return ret_val;
-	}
+    HAL_RESULT_PROPAGATE(HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, &status_raw, 1, 100));
 
 	light_sensor->status = __statusRegister_from_raw(status_raw);
 
@@ -155,13 +152,11 @@ HAL_StatusTypeDef LightSensor_get_data(LightSensorHandleTypedef *light_sensor) {
 		return HAL_ERROR;
 	}
 	// Check data status bit. If 0 data is old
-	if(!light_sensor->status.new){
-		return HAL_ERROR;
-	}
+	//if(!light_sensor->status.new){
+	//	return HAL_ERROR;
+	//}
 
-	ret_val = HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, (uint8_t *)&light_sensor->data, 4, 100);
-
-	return ret_val;
+	return HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, (uint8_t *)&light_sensor->data, 4, 100);
 }
 
 HAL_StatusTypeDef LightSensor_sleep(LightSensorHandleTypedef *light_sensor){
@@ -182,4 +177,39 @@ HAL_StatusTypeDef LightSensor_get_part_id(LightSensorHandleTypedef *light_sensor
 
 HAL_StatusTypeDef LightSensor_get_manufacturer(LightSensorHandleTypedef *light_sensor, ALSManufacIDRegister *dst){
     return HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_MANUFAC_ID_ADDR, I2C_MEMADD_SIZE_8BIT, (uint8_t*)dst, sizeof(ALSManufacIDRegister), 100);
+}
+
+
+void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr){
+    LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)light_sensor_raw_addr;
+	if(LightSensor_get_data(light_sensor) == HAL_OK){
+	    light_sensor->count++;
+	}
+	//Store data somewhere?
+
+}
+
+HAL_StatusTypeDef LightSensor_thread_entry(ULONG thread_input){
+
+	//Declare lightsensor handler and initialize chip
+	LightSensorHandleTypedef light_sensor;
+	light_sensor.count = 0;
+	HAL_RESULT_PROPAGATE(LightSensor_init(&light_sensor, &hi2c2));
+
+	TX_TIMER sample_timer;
+	//ToDo: Error handling
+	//ToDo: Time calculated from threadx ticks per second
+	ULONG result = tx_timer_create(&sample_timer, "Light Sensor Sample Timer",
+		priv_lightSensor_sample_timer_expiration, (ULONG)(&light_sensor),
+		1, 100, TX_AUTO_ACTIVATE
+	);
+
+	if(!result){
+    while(1){
+	    if(light_sensor.count != 0){
+	        printf("Count incremented\n");
+	        light_sensor.count = 0;
+	    }
+	}
+	}
 }
