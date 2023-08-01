@@ -135,7 +135,7 @@ typedef struct __LightSensor_TypeDef
 	// Data buffers for I2C data
 	ALSStatusRegister status;
     ALSDataRegister data;
-    uint32_t count;
+    uint32_t sample_rate_ms;
 } LightSensorHandleTypedef;
 
 HAL_StatusTypeDef LightSensor_init(LightSensorHandleTypedef *light_sensor, I2C_HandleTypeDef *hi2c_device);

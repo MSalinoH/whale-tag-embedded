@@ -21,6 +21,8 @@
 #include "Sensor Inc/audio.h"
 #include "Sensor Inc/BNO08x.h"
 #include "Sensor Inc/ECG.h"
+#include "Sensor Inc/LightSensor.h"
+#include "Sensor Inc/KellerDepth.h"
 #include "Lib Inc/state_machine.h"
 #include "Recovery Inc/Aprs.h"
 
@@ -119,6 +121,17 @@ static Thread_ConfigTypeDef threadConfigList[NUM_THREADS] = {
 			.thread_stack_size = 2048,
 			.priority = 6,
 			.preempt_threshold = 6,
+			.timeslice = TX_NO_TIME_SLICE,
+			.start = TX_DONT_START
+		},
+		{
+			//Light Sensor Thread
+			.thread_name = "Light Sensor Thread",
+			.thread_entry_function = LightSensor_thread_entry,
+			.thread_input = 0x1234,
+			.thread_stack_size = 2048,
+			.priority = 7,
+			.preempt_threshold = 7,
 			.timeslice = TX_NO_TIME_SLICE,
 			.start = TX_DONT_START
 		}

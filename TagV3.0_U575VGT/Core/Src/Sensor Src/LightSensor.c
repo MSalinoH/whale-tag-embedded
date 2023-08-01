@@ -96,12 +96,12 @@ HAL_StatusTypeDef LightSensor_init(LightSensorHandleTypedef *light_sensor, I2C_H
 	// Maximum initial startup time is 100 ms
 	HAL_Delay(100);
 
-	HAL_StatusTypeDef ret_val = LightSensor_wake_up(light_sensor, GAIN_DEF);
+	HAL_RESULT_PROPAGATE(LightSensor_wake_up(light_sensor, GAIN_DEF));
 
 	// Uncomment lines below and change
 	LightSensor_set_data_rate(light_sensor, ALS_INTEG_TIME_100_MS, ALS_MEAS_TIME_500_MS);
 
-	return ret_val;
+	return HAL_OK;
 
 }
 
@@ -133,9 +133,9 @@ HAL_StatusTypeDef LightSensor_set_data_rate(LightSensorHandleTypedef *light_sens
         .measurement_time = meas_rate
     });
 
-	HAL_StatusTypeDef ret_val = HAL_I2C_Mem_Write(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_MEAS_RATE, I2C_MEMADD_SIZE_8BIT, &raw, sizeof(raw), 100);
+	HAL_RESULT_PROPAGATE(HAL_I2C_Mem_Write(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_MEAS_RATE, I2C_MEMADD_SIZE_8BIT, &raw, sizeof(raw), 100));
 
-	return ret_val;
+	return HAL_OK;
 }
 
 
@@ -156,7 +156,8 @@ HAL_StatusTypeDef LightSensor_get_data(LightSensorHandleTypedef *light_sensor) {
 	//	return HAL_ERROR;
 	//}
 
-	return HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, (uint8_t *)&light_sensor->data, 4, 100);
+	HAL_RESULT_PROPAGATE(HAL_I2C_Mem_Read(light_sensor->i2c_handler, ALS_ADDR << 1, ALS_DATA, I2C_MEMADD_SIZE_8BIT, (uint8_t *)&light_sensor->data, 4, 100));
+	return HAL_OK;
 }
 
 HAL_StatusTypeDef LightSensor_sleep(LightSensorHandleTypedef *light_sensor){
@@ -183,33 +184,29 @@ HAL_StatusTypeDef LightSensor_get_manufacturer(LightSensorHandleTypedef *light_s
 void priv_lightSensor_sample_timer_expiration(ULONG light_sensor_raw_addr){
     LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)light_sensor_raw_addr;
 	if(LightSensor_get_data(light_sensor) == HAL_OK){
-	    light_sensor->count++;
+		//Store data somewhere?
 	}
-	//Store data somewhere?
 
 }
 
 HAL_StatusTypeDef LightSensor_thread_entry(ULONG thread_input){
 
-	//Declare lightsensor handler and initialize chip
-	LightSensorHandleTypedef light_sensor;
-	light_sensor.count = 0;
-	HAL_RESULT_PROPAGATE(LightSensor_init(&light_sensor, &hi2c2));
 
-	TX_TIMER sample_timer;
+
+	//Declare lightsensor handler and initialize chip
+	LightSensorHandleTypedef *light_sensor = (LightSensorHandleTypedef *)thread_input;
+	HAL_RESULT_PROPAGATE(LightSensor_init(light_sensor, &hi2c2));
+
+	TX_THREAD sample_timer;
 	//ToDo: Error handling
 	//ToDo: Time calculated from threadx ticks per second
 	ULONG result = tx_timer_create(&sample_timer, "Light Sensor Sample Timer",
-		priv_lightSensor_sample_timer_expiration, (ULONG)(&light_sensor),
-		1, 100, TX_AUTO_ACTIVATE
+		priv_lightSensor_sample_timer_expiration, (ULONG)(light_sensor),
+		1, tx_ms_to_ticks(1000), TX_AUTO_ACTIVATE
 	);
+	if(result)
+		return result;
 
-	if(!result){
-    while(1){
-	    if(light_sensor.count != 0){
-	        printf("Count incremented\n");
-	        light_sensor.count = 0;
-	    }
-	}
+	while(1){
 	}
 }

@@ -21,4 +21,7 @@
 //A macro for converting microseconds to threadX ticks. This can be used to feed into software timers, task sleeps, etc.
 #define tx_us_to_ticks(US) ((US) * (TX_TIMER_TICKS_PER_SECOND) / 1000000)
 
+//A macro for converting hertz to threadX ticks. This can be used to feed into software timers, task sleeps, etc.
+#define tx_hz_to_ticks(HZ) ((TX_TIMER_TICKS_PER_SECOND) / (HZ))
+
 #endif /* INC_LIB_INC_TIMING_H_ */
