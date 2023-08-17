@@ -26,31 +26,30 @@ void fishtracker_thread_entry(ULONG thread_input){
 	//Initialization - find out our DAC values and the timer period
 	calcFishtrackerDacValues();
 
-	uint8_t timerPeriod = (TIM2_SCALED_FREQ / FISHTRACKER_NUM_DAC_SAMPLES /FISHTRACKER_INPUT_FREQ_HZ);
-
-	//Reinitialize timer
-	//MX_TIM2_Fake_Init(timerPeriod);
-
 	//Initialize VHF module for transmission. Turn transmission off so we don't hog the frequency
 	initialize_vhf(huart4, false, FISHTRACKER_CARRIER_FREQ_MHZ, FISHTRACKER_CARRIER_FREQ_MHZ);
 	set_ptt(false);
 
-	set_ptt(true);
+	//We must use DMA since our DAC is configured that way in the IOC (See calcFishtrackerDacValues for the override)
+	HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, fishtracker_dac_input, FISHTRACKER_NUM_DAC_SAMPLES, DAC_ALIGN_8B_R);
+	HAL_TIM_Base_Start(&htim2);
+
 	while (1) {
 
-		//Start our DAC and our timer to trigger the conversion edges
+		//We have a constant sine wave being outputted the VHF module. Since its FM modulation, there is no way to make the output wave truly "0".
+		//
+		//Thus, we mimic this by turning on and off the PTT, to simulate an ON/OFF wave.
+		//
+		//Set PTT true to get the ON cycle.
+		set_ptt(true);
 
-		HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, fishtracker_dac_input, FISHTRACKER_NUM_DAC_SAMPLES, DAC_ALIGN_8B_R);
-		HAL_TIM_Base_Start(&htim2);
-		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_8B_R, 255);
-
+		//Go to sleep for the ON period
 		tx_thread_sleep(FISHTRACKER_ON_TIME_TICKS);
 
-		//Stop DAC and timer
-		HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
-		HAL_TIM_Base_Stop(&htim2);
-		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_8B_R, 0);
+		//Start the OFF cycle
+		set_ptt(false);
 
+		//Go to sleep again for the off period.
 		tx_thread_sleep(FISHTRACKER_OFF_TIME_TICKS);
 	}
 }
@@ -60,10 +59,9 @@ static void calcFishtrackerDacValues(){
 
 	for (uint8_t i = 0; i < FISHTRACKER_NUM_DAC_SAMPLES; i++){
 
-		//Formula taken from STM32 documentation online on sine wave generation.
-		//Generates a sine wave with a min of 0V and a max of the reference voltage.
-		fishtracker_dac_input[i] = ((sin(i * 2 * PI/FISHTRACKER_NUM_DAC_SAMPLES) + 1) * (256/2));
-		//fishtracker_dac_input[i] = 255;
+		//Based off the IOC, our DAC is configurd to go through DMA.
+		//We just want a one value output, so just make the entire array just one value
+		fishtracker_dac_input[i] = 255;
 	}
 
 }
