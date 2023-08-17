@@ -60,12 +60,12 @@ HAL_StatusTypeDef configure_dra818v(UART_HandleTypeDef huart, bool emphasis, boo
 	//Set the volume of the transmissions
 	sprintf(transmit_data, "AT+DMOSETVOLUME=%d\r\n", VHF_VOLUME_LEVEL);
 
-	//HAL_UART_Transmit(&huart, (uint8_t*) transmit_data, SET_VOLUME_TRANSMIT_LENGTH, HAL_MAX_DELAY);
-	//HAL_UART_Receive(&huart, (uint8_t*) response_data, SET_VOLUME_RESPONSE_LENGTH, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart, (uint8_t*) transmit_data, SET_VOLUME_TRANSMIT_LENGTH, HAL_MAX_DELAY);
+	HAL_UART_Receive(&huart, (uint8_t*) response_data, SET_VOLUME_RESPONSE_LENGTH, HAL_MAX_DELAY);
 
 	//Ensure the response matches the expected response
-	//if (strncmp(response_data, VHF_SET_VOLUME_EXPECTED_RESPONSE, SET_VOLUME_RESPONSE_LENGTH) != 0)
-		//failed_config = true;
+	if (strncmp(response_data, VHF_SET_VOLUME_EXPECTED_RESPONSE, SET_VOLUME_RESPONSE_LENGTH) != 0)
+		failed_config = true;
 
 	HAL_Delay(1000);
 
