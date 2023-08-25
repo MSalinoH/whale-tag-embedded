@@ -19,8 +19,9 @@
 
 #define FISHTRACKER_CARRIER_FREQ_MHZ "150.7750"
 
-#define FISHTRACKER_INPUT_FREQ_HZ 1000
-
+// DRA818 may not respond to changes this quickly
+// Actual on time will be long
+// i.e. 80ms ~= 500ms
 #define FISHTRACKER_ON_TIME_MS 80
 
 #define FISHTRACKER_OFF_TIME_MS 1100
