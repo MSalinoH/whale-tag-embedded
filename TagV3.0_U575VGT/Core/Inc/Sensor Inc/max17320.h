@@ -157,7 +157,7 @@ HAL_StatusTypeDef max17320_get_time_to_empty(MAX17320_HandleTypeDef *dev);
 
 HAL_StatusTypeDef max17320_get_time_to_full(MAX17320_HandleTypeDef *dev);
 
-HAL_StatusTypeDef max17320_set_alert_thresholds(MAX17320_HandleTypeDef *dev, float thr);
+HAL_StatusTypeDef max17320_set_alert_thresholds(MAX17320_HandleTypeDef *dev);
 
 HAL_StatusTypeDef max17320_configure_cell_balancing(MAX17320_HandleTypeDef *dev);
 
