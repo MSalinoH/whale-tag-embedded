@@ -80,7 +80,6 @@ LightSensorHandleTypedef light_sensor;
 ad7768_dev adc;
 MAX17320_HandleTypeDef bms;
 
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -158,6 +157,7 @@ int main(void)
   LightSensor_get_data(&light_sensor);
   ad7768_setup(&adc, &hspi1);
   max17320_init(&bms, &hi2c4);
+  max17320_clear_write_protection(&bms);
 
   SDcard_UT();
   Keller_UT(&depth_sensor);
@@ -165,8 +165,10 @@ int main(void)
   AD7768_UT(&adc);
   /* USER CODE END 2 */
 
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
     /* USER CODE END WHILE */
