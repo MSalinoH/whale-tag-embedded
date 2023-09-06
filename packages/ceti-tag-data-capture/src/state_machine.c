@@ -122,6 +122,63 @@ void* stateMachine_thread(void* paramPtr) {
 // * Details of state machine are documented in the high-level design
 //-----------------------------------------------------------------------------
 
+
+int stateMachine_setState(wt_state_t state){
+    if(state == presentState) { return 0; } //nothing to do
+
+    //actions performed when exiting a state
+    switch(presentState){
+        case ST_DEPLOY:
+            if(state != ST_REC_SURF){
+                recoveryOff();
+            }
+            break;
+
+        case ST_REC_SURF:
+            recoveryOff();
+            break;
+
+        case ST_BRN_ON:
+            burnwireOff();
+            break;
+
+        case ST_RETRIEVE:
+            recoveryOff();
+            break;
+
+        default:
+            break;
+    }
+
+    //actions performed when entering a state
+    switch(state){
+        case ST_DEPLOY:
+            recoveryOn();
+            break;
+
+        case ST_REC_SURF:
+            recoveryOn();
+            break;
+
+        case ST_BRN_ON:
+            burnTimeStart = current_rtc_count;
+            burnwireOn();
+            break;
+
+        case ST_RETRIEVE:
+            recoveryOn();
+            break;
+
+        default:
+            break;
+    }
+
+    presentState = state;
+    return 0;
+
+}
+
+
 int updateStateMachine() {
 
     // Deployment sequencer FSM
@@ -206,7 +263,7 @@ int updateStateMachine() {
         last_reset_rtc_count = getRtcCount(); //start_time since last restart (used to keep wifi-enabled)
         CETI_LOG("Deploy Start: %u", start_rtc_count);
         recoveryOn();                // turn on Recovery Board
-        presentState = ST_DEPLOY;    // underway!
+        stateMachine_setState(ST_DEPLOY); // underway!
         break;
 
     // ---------------- Just deployed ----------------
@@ -221,9 +278,8 @@ int updateStateMachine() {
         if ((g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_1) ||
             (current_rtc_count - start_rtc_count > timeout_seconds)
         ) {
-            burnTimeStart = current_rtc_count;
-            burnwireOn();
-            presentState = ST_BRN_ON;
+
+            stateMachine_setState(ST_BRN_ON);
             break;
         }
         #endif
@@ -236,7 +292,7 @@ int updateStateMachine() {
             wifi_disable(); 
             // usb_disable();
             activity_led_disable();
-            presentState = ST_REC_SUB; // 1st dive after deploy
+            stateMachine_setState(ST_REC_SUB); // 1st dive after deploy
         }
         #endif
 
@@ -252,21 +308,18 @@ int updateStateMachine() {
         if ((g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_1) ||
             (current_rtc_count - start_rtc_count > timeout_seconds)
         ) {
-            burnTimeStart = current_rtc_count;
-            burnwireOn();
-            presentState = ST_BRN_ON;
+            stateMachine_setState(ST_BRN_ON);
             break;
         }
         #endif
 
-        #if ENABLE_PRESSURE_SENSOR
+        #if ENABLE_PRESSURETEMPERATURE_SENSOR
         if (g_latest_pressureTemperature_pressure_bar < d_press_1) {
-            presentState = ST_REC_SURF; // came to surface
+            stateMachine_setState(ST_REC_SURF);// came to surface
             break;
         }
         #endif
 
-        recoveryOff();
         break;
 
     case (ST_REC_SURF):
@@ -279,22 +332,15 @@ int updateStateMachine() {
         if ((g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_1) ||
             (current_rtc_count - start_rtc_count > timeout_seconds)
         ) {
-            burnTimeStart = current_rtc_count;
-            burnwireOn();
-            presentState = ST_BRN_ON;
+            stateMachine_setState(ST_BRN_ON);
             break;
         }
         #endif
 
-        #if ENABLE_PRESSURE_SENSOR
+        #if ENABLE_PRESSURETEMPERATURE_SENSOR
         if (g_latest_pressureTemperature_pressure_bar > d_press_2) {
-            recoveryOff();
-            presentState = ST_REC_SUB; // back under....
+            stateMachine_setState(ST_REC_SUB); // back under....
             break;
-        }
-
-        if (g_latest_pressureTemperature_pressure_bar < d_press_1) {
-            recoveryOn();
         }
         #endif
 
@@ -306,35 +352,30 @@ int updateStateMachine() {
         //  Battery at %.2f \n", (current_rtc_count - start_rtc_count), (g_latest_battery_v1_v +
         //  [1]));
 
-        #if ENABLE_BATTERY_GAUGE
-        if (g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_2) {
-            presentState = ST_SHUTDOWN; // critical battery
-            break;
-        }
 
-        if (g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_1) {
-            presentState = ST_RETRIEVE; // low battery
-            break;
-        }
 
         // update 220109 to leave burnwire on without time limit
         // Leave burn wire on for 20 minutes or until the battery is depleted
         if (current_rtc_count - burnTimeStart > burnInterval_seconds) {
-        	burnwireOff();  //leaving it on no time limit -change 220109
-        	presentState = ST_RETRIEVE;
+            #if ENABLE_BATTERY_GAUGE
+            if (g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_2) {
+                stateMachine_setState(ST_SHUTDOWN); // critical battery
+                break;
+            }
+            #endif
+            stateMachine_setState(ST_RETRIEVE);
         }
-        #endif
 
         #if ENABLE_PRESSURETEMPERATURE_SENSOR
-        // at surface, turn on the Recovery Board
-        if (g_latest_pressureTemperature_pressure_bar < d_press_1) {
-            recoveryOn();
-        }
+        // // at surface, turn on the Recovery Board
+        // if (g_latest_pressureTemperature_pressure_bar < d_press_1) {
+        //     recoveryOn();
+        // }
 
-        // still under or resubmerged
-        if (g_latest_pressureTemperature_pressure_bar > d_press_2) {
-            recoveryOff();
-        }
+        // // still under or resubmerged
+        // if (g_latest_pressureTemperature_pressure_bar > d_press_2) {
+        //     recoveryOff();
+        // }
 
         #endif
 
@@ -350,14 +391,8 @@ int updateStateMachine() {
         #if ENABLE_BATTERY_GAUGE
         // critical battery
         if (g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_2) {
-            presentState = ST_SHUTDOWN;
+            stateMachine_setState(ST_SHUTDOWN);
             break;
-        }
-
-        // low battery
-        if (g_latest_battery_v1_v + g_latest_battery_v2_v < d_volt_1) {
-            // burnwireOn();
-            recoveryOn();
         }
         #endif
 
