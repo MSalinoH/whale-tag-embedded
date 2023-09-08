@@ -15,7 +15,7 @@ jobs:
     steps:
       # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
-        uses: actions/checkout
+        uses: actions/checkout@v4
 
       - name: Build code
         uses: xanderhendriks/action-build-stm32cubeide@v5.0
