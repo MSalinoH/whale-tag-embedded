@@ -1,9 +1,7 @@
 name: Build STM32CubeIDE Project
 
-on:
-  push:
-    branches:
-      - main # or the branch you want to trigger the CI on
+on: push
+
 
 jobs:
   build:
@@ -24,3 +22,4 @@ jobs:
         run: |
           stm32cubeide -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -data . -build all -importAll TagV3.0_U5_VGT
         working-directory: .
+
