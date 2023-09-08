@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout
 
       - name: Build code
-        uses: xanderhendriks/action-build-stm32cubeide@v10.0
+        uses: xanderhendriks/action-build-stm32cubeide@v5.0
         with:
           project-path: '.'
           project-target: 'TagV3.0_U5_VGT'
