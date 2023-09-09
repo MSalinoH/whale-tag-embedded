@@ -1,25 +1,24 @@
-name: Build STM32CubeIDE Project
+name: STM32CubeIDE Build
 
+# Run this workflow every time a new commit pushed to your repository
 on: push
 
-
 jobs:
-  build:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  stm32-build:
+    # Name the Job
+    name: STM32 build
+    # Set the type of machine to run on
     runs-on: ubuntu-latest
 
     steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
 
-      - name: Set up STM32CubeIDE
-        uses: actions/setup-java@v2
+      - name: Build code
+        uses: xanderhendriks/action-build-stm32cubeide@v10.0
         with:
-          distribution: 'zulu'
-          java-version: '11'
-      # You may need to adjust the Java version and distribution based on your STM32CubeIDE version.
-
-      - name: Build STM32CubeIDE project
-        run: |
-          stm32cubeide -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -data . -build all -importAll TagV3.0_U5_VGT
-        working-directory: .
-
+          project-path: 'TagV3.0_U5_VGT'
+          project-target: 'TagV3.0_U5_VGT'
