@@ -20,5 +20,5 @@ jobs:
       - name: Build code
         uses: xanderhendriks/action-build-stm32cubeide@v10.0
         with:
-          project-path: '.'
+          project-path: 'TagV3.0_U575VGT'
           project-target: 'TagV3.0_U575VGT'
