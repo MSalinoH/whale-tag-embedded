@@ -17,8 +17,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3.1.0
 
+      # Runs the Super-Linter action
+      - name: Run Super-Linter
+        uses: github/super-linter@v4
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_DOCKERFILE: false
+          VALIDATE_DOCKERFILE_HADOLINT: false
+          FILTER_REGEX_INCLUDE: TagV3.0_U575VGT/Core/.*/.*\.[ch]
+
+      #Build code using stm32cubeide
       - name: Build code
         uses: xanderhendriks/action-build-stm32cubeide@v10.0
         with:
           project-path: 'TagV3.0_U575VGT'
           project-target: 'TagV3.0_U575VGT'
+
