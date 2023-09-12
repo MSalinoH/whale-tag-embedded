@@ -10,9 +10,9 @@
 
 #include "tx_api.h"
 
-#define IS_SIMULATING false
+#define IS_SIMULATING true
 //Should correspond with the state types enum below
-#define SIMULATING_STATE 0
+#define SIMULATING_STATE 1
 
 //Flags inside of our state machine event flags
 #define STATE_TIMEOUT_FLAG 0x1
@@ -21,6 +21,9 @@
 #define STATE_USB_CONNECTED_FLAG 0x8
 #define STATE_USB_DISCONNECTED_FLAG 0x10
 #define STATE_TAG_RELEASED 0x20
+
+//Recovery modes (To enable fish tracker or not)
+#define ENABLE_FISHTRACKER true
 
 #define DATA_OFFLOADING_SD_CLK_DIV 6
 #define NORMAL_SD_CLK_DIV 2

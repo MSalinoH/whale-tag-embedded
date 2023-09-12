@@ -123,9 +123,17 @@ void hard_exit_data_capture(){
 }
 
 void enter_recovery(){
+
 	//Start APRS thread
-	tx_thread_reset(&threads[APRS_THREAD].thread);
-	tx_thread_resume(&threads[APRS_THREAD].thread);
+	if (ENABLE_FISHTRACKER){
+		tx_thread_reset(&threads[FISHTRACKER_THREAD].thread);
+		tx_thread_resume(&threads[FISHTRACKER_THREAD].thread);
+	}
+	else {
+		tx_thread_reset(&threads[APRS_THREAD].thread);
+		tx_thread_resume(&threads[APRS_THREAD].thread);
+	}
+
 }
 
 
