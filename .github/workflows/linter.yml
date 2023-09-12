@@ -26,4 +26,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_DOCKERFILE: false
           VALIDATE_DOCKERFILE_HADOLINT: false
+          FILTER_REGEX_INCLUDE: TagV3.0_U575VGT/Core/.*/.*\.[ch]
 ...
