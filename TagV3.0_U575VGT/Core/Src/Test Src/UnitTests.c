@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include "UnitTests.h"
 #include "app_filex.h"
+#include "main.h"
+#include "sys_monitor.h"
 
 #define UT_ASSERT( expr) \
     if(expr){\
@@ -56,7 +58,7 @@ void Light_UT(LightSensorHandleTypedef *light_sensor){
 	    );
 	}
 	else{
-	    printf("\tPart ID Passed\r\n");
+	     printf("\tPart ID Passed\r\n");
 	}
 	if(abs(light_sensor->data.visible - AVG_LUX) > LUX_TOL){
 		printf("\tVisible Failed: %d lux\r\n", light_sensor->data.visible);
@@ -130,6 +132,57 @@ bool SDcard_UT(void){
 	UT_ASSERT(fx_media_close(&sdio_disk) == FX_SUCCESS );
 
 	return true;
+}
+
+bool test_analog_power(void){
+	printf("Power Test:\r\n");
+
+	printf("\tPower Disabled: ");
+	HAL_GPIO_WritePin(NEG_5V_EN_GPIO_Port, NEG_5V_EN_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(POS_5V_EN_GPIO_Port, POS_5V_EN_Pin, GPIO_PIN_RESET);
+    float pos = systemMonitor_pos5v_read();
+    float neg = systemMonitor_neg5v_read();
+    if(pos > (0.9*5.0) || neg < (0.9 * (-5.0)) ){
+    	printf("Failed\r\n");
+    	printf("\t\tExpected: {+5v: 0.0v, -5v: 0.0v}\r\n");
+    	printf("\t\tReceived: {+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    	return 0;
+    }else{
+    	printf("Passed:\r\n");
+    	printf("\t\t{+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    }
+
+    printf("\t-5 Enabled: ");
+	HAL_GPIO_WritePin(NEG_5V_EN_GPIO_Port, NEG_5V_EN_Pin, GPIO_PIN_SET);
+	HAL_Delay(10);
+    pos = systemMonitor_pos5v_read();
+    neg = systemMonitor_neg5v_read();
+    if(pos > (0.9*5.0) || neg > (0.9 * (-5.0)) ){
+    	printf("Failed\r\n");
+    	printf("\t\tExpected: {+5v: 0.0v, -5v: -5.0v}\r\n");
+    	printf("\t\tReceived: {+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    	return 0;
+    }else{
+    	printf("Passed:\r\n");
+    	printf("\t\t{+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    }
+
+    printf("\t+5 Enabled: ");
+    HAL_GPIO_WritePin(POS_5V_EN_GPIO_Port, POS_5V_EN_Pin, GPIO_PIN_SET);
+	HAL_Delay(10);
+    pos = systemMonitor_pos5v_read();
+    neg = systemMonitor_neg5v_read();
+    if(pos < (0.9*5.0) || neg > (0.9 * (-5.0)) ){
+    	printf("Failed\r\n");
+    	printf("\t\tExpected: {+5v: 5.0v, -5v: -5.0v}\r\n");
+    	printf("\t\tReceived: {+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    	return 0;
+    }else{
+    	printf("Passed:\r\n");
+    	printf("\t\t{+5v: %.1fv, -5v: %.1fv}\r\n", pos, neg);
+    }
+
+	return 1;
 }
 
 // Function for printing to SWV

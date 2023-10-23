@@ -4,6 +4,7 @@ RemoteSystemsTempFiles/
 .settings/
 [Dd]ebug/
 [Rr]elease/
+[Uu]nit Test/
 [Tt]est/
 *.launch
 .vscode/

@@ -38,4 +38,5 @@ void Keller_UT(Keller_HandleTypedef *keller_sensor);
 void Light_UT(LightSensorHandleTypedef *light_sensor);
 void AD7768_UT(ad7768_dev *adc);
 bool SDcard_UT(void);
+bool test_analog_power(void);
 #endif /* INC_UNITTESTS_H_ */
